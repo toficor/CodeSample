@@ -20,20 +20,30 @@ public class PoolingSystem : Singleton<PoolingSystem>
     {
         for (int i = 0; i < _poolingSystemDatas.Count; i++)
         {
-            GameObject poolParent = new GameObject(_poolingSystemDatas[i].Tag);
-            poolParent.transform.SetParent(this.transform);
+          //  GameObject poolParent = new GameObject(_poolingSystemDatas[i].Tag);
+          //  poolParent.transform.SetParent(this.transform);
             _pools.Add(_poolingSystemDatas[i].Tag,
-                CreatePool(_poolingSystemDatas[i].Amount, _poolingSystemDatas[i].Prefab, poolParent.transform));
+                CreatePool(_poolingSystemDatas[i].Amount, _poolingSystemDatas[i].Prefab, this.transform, _poolingSystemDatas[i].Tag));
         }
     }
 
-    private Queue<GameObject> CreatePool(int amount, GameObject prefab, Transform parent)
+    private Queue<GameObject> CreatePool(int amount, GameObject prefab, Transform parent, string tag)
     {
         Queue<GameObject> queue = new Queue<GameObject>();
 
         for (int i = 0; i < amount; i++)
         {
             GameObject go = Instantiate(prefab, parent, true);
+            var iPoolable = go.GetComponent<IPoolable>();
+
+            if (iPoolable == null)
+            {
+                Debug.LogError($@"This Prefab {prefab.name} isn't poolable");
+                break;
+            } 
+            
+            iPoolable.DeSpawn += DespawnObject;
+            iPoolable.Tag = tag;
             go.SetActive(false);
             queue.Enqueue(go);
         }
@@ -41,13 +51,31 @@ public class PoolingSystem : Singleton<PoolingSystem>
         return queue;
     }
 
-    public GameObject SpawnObject(string tag)
+    public void DespawnObject(string tag, GameObject pooledGameObject)
     {
-        return null;
+        pooledGameObject.SetActive(false);
+        //pozmieniac potem wszystkie odowlania do ementow w dictionary na TryGet
+        _pools[tag].Enqueue(pooledGameObject);
     }
 
-    public GameObject SpawnObjectAtPoint(string tag, Vector3 position)
+    public GameObject SpawnObject(string tag)
     {
-        return null;
+        var go = _pools[tag].Dequeue();
+        go.SetActive(true);
+        return go;
+    }
+
+    public GameObject SpawnObject(string tag, Vector3 position)
+    {
+        var go = SpawnObject(tag);
+        go.transform.position = position;
+        return go;
+    }
+    
+    public GameObject SpawnObject(string tag, Vector3 position, Quaternion rotation)
+    {
+        var go = SpawnObject(tag, position);
+        go.transform.rotation = rotation;
+        return go;
     }
 }

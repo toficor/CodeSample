@@ -5,26 +5,25 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-
     [SerializeField] private Transform _shootingPoint;
     [SerializeField] private PlayerWeaponData _playerWeaponData;
 
     private PlayerWeapon _playerWeapon;
 
-    private void Start()
+    private void Awake()
     {
         Init();
     }
 
     private void Update()
     {
-       _playerWeapon?.OnUpdate();
-       Rotate();
+        _playerWeapon?.OnUpdate();
+        Rotate();
     }
 
     private void Init()
     {
-        
+        _playerWeapon = new PlayerWeapon(_shootingPoint, _playerWeaponData);
     }
 
     private void Rotate()
