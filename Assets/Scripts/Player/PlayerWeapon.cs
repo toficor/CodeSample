@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,7 @@ public class PlayerWeapon
     private Transform _shootingPoint;
 
     private float _shootingTimer = 0f;
+    private BulletProperties _currentBulletEffects = BulletProperties.None;
 
     public PlayerWeapon(Transform shootingPoint, PlayerWeaponData playerWeaponData)
     {
@@ -23,6 +25,31 @@ public class PlayerWeapon
         {
             Shoot();
         }
+
+        ManageBulletEffects();
+    }
+
+    private void ManageBulletEffects()
+    {
+        if (PlayerInput.EnablePiercing)
+        {
+            _currentBulletEffects ^= BulletProperties.Piercing;
+            Debug.LogError(_currentBulletEffects);
+        }
+
+        if (PlayerInput.EnableForking)
+        {
+            _currentBulletEffects ^= BulletProperties.Forking;
+
+            Debug.LogError(_currentBulletEffects);
+        }
+
+        if (PlayerInput.EnableChaining)
+        {
+            _currentBulletEffects ^= BulletProperties.Chaining;
+
+            Debug.LogError(_currentBulletEffects);
+        }
     }
 
     private void Shoot()
@@ -33,6 +60,16 @@ public class PlayerWeapon
         }
 
         _shootingTimer = 0f;
-        PoolingSystem.Instance.SpawnObject("Bullet", _shootingPoint.position, _shootingPoint.rotation);
+        var bullet = PoolingSystem.Instance.SpawnObject("Bullet", _shootingPoint.position, _shootingPoint.rotation);
+        var bulletController = bullet.GetComponent<BulletCotroller>();
+
+        if (!bulletController)
+        {
+            Debug.LogError("Trying to shoot gameobject without bullet controller");
+            bullet.SetActive(false);
+            return;
+        }
+
+        bulletController.BulletProperties = _currentBulletEffects;
     }
 }

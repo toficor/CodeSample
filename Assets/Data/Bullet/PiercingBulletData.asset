@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d6219cf402e7274c8b209bacd9e26c4, type: 3}
-  m_Name: BacisBullet
+  m_Script: {fileID: 11500000, guid: a5d73f5342425c54e8dcbffe541a3940, type: 3}
+  m_Name: PiercingBulletData
   m_EditorClassIdentifier: 
-  Speed: 25
+  PiercingAmount: 3

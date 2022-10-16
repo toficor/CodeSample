@@ -54,13 +54,14 @@ public class PoolingSystem : Singleton<PoolingSystem>
     public void DespawnObject(string tag, GameObject pooledGameObject)
     {
         pooledGameObject.SetActive(false);
-        //pozmieniac potem wszystkie odowlania do ementow w dictionary na TryGet
+        //pozmieniac potem wszystkie odowlania do ementow w dictionary na TryGet albo check name czy tam key
         _pools[tag].Enqueue(pooledGameObject);
     }
 
     public GameObject SpawnObject(string tag)
     {
         var go = _pools[tag].Dequeue();
+        //dodac instancje jesli nie ma juz w poolu nic
         go.SetActive(true);
         return go;
     }
