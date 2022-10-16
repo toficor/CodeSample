@@ -11,4 +11,7 @@ public static class PlayerInput
     public static bool EnableChaining => Input.GetKeyDown(KeyCode.Alpha2);
     
     public static bool EnableForking => Input.GetKeyDown(KeyCode.Alpha3);
+
+    public static bool SpawnEnemyAtCursor => Input.GetKeyDown(KeyCode.Q);
+    public static bool SpawnEnemyRandomly => Input.GetKeyDown(KeyCode.W);
 }
