@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5d73f5342425c54e8dcbffe541a3940, type: 3}
   m_Name: PiercingBulletData
   m_EditorClassIdentifier: 
-  PiercingAmount: 3
+  AmountOfObjectsGoingThrough: 2

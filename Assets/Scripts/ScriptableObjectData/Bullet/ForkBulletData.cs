@@ -6,4 +6,5 @@ using UnityEngine;
 public class ForkBulletData : ScriptableObject
 {
     public int PartsAmount = 2;
+    public float AngleOffset = 30f;
 }

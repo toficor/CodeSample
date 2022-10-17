@@ -20,10 +20,11 @@ public class PoolingSystem : Singleton<PoolingSystem>
     {
         for (int i = 0; i < _poolingSystemDatas.Count; i++)
         {
-          //  GameObject poolParent = new GameObject(_poolingSystemDatas[i].Tag);
-          //  poolParent.transform.SetParent(this.transform);
+            //  GameObject poolParent = new GameObject(_poolingSystemDatas[i].Tag);
+            //  poolParent.transform.SetParent(this.transform);
             _pools.Add(_poolingSystemDatas[i].Tag,
-                CreatePool(_poolingSystemDatas[i].Amount, _poolingSystemDatas[i].Prefab, this.transform, _poolingSystemDatas[i].Tag));
+                CreatePool(_poolingSystemDatas[i].Amount, _poolingSystemDatas[i].Prefab, this.transform,
+                    _poolingSystemDatas[i].Tag));
         }
     }
 
@@ -34,14 +35,18 @@ public class PoolingSystem : Singleton<PoolingSystem>
         for (int i = 0; i < amount; i++)
         {
             GameObject go = Instantiate(prefab, parent, true);
+
+            //debug
+            go.name += i;
+
             var iPoolable = go.GetComponent<IPoolable>();
 
             if (iPoolable == null)
             {
                 Debug.LogError($@"This Prefab {prefab.name} isn't poolable");
                 break;
-            } 
-            
+            }
+
             iPoolable.DeSpawn += DespawnObject;
             iPoolable.Tag = tag;
             go.SetActive(false);
@@ -72,7 +77,7 @@ public class PoolingSystem : Singleton<PoolingSystem>
         go.transform.position = position;
         return go;
     }
-    
+
     public GameObject SpawnObject(string tag, Vector3 position, Quaternion rotation)
     {
         var go = SpawnObject(tag, position);

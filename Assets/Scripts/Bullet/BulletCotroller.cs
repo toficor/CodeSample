@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.U2D;
 
 public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
 {
@@ -15,6 +16,8 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
 
     public BulletProperties BulletProperties;
     public string Tag { get; set; }
+    public int CurrentChainJump { get; set; } = 0;
+
     public event Action<string, GameObject> DeSpawn;
 
     private void OnEnable()
@@ -30,12 +33,36 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
             Debug.LogWarning("None");
             OnDestroy();
         }
-        
+
         if (BulletProperties.HasFlag(BulletProperties.Chaining))
         {
-            Debug.LogWarning("Chaining");
+            if (CurrentChainJump < _chainBulletData.JumpsAmount)
+            {
+                Transform nearestTarget =
+                    ShootingUtilities.GetNearestTarget(col.transform.position, _chainBulletData.MaxRangeToNextJump);
+
+                if (!nearestTarget)
+                {
+                    OnDestroy();
+                    return;
+                }
+
+                Vector3 pos = nearestTarget.position - transform.position;
+                float angle = Mathf.Atan2(pos.y, pos.x) * Mathf.Rad2Deg;
+
+                SpriteRenderer renderer = col.gameObject.GetComponent<SpriteRenderer>();
+                var bullet = PoolingSystem.Instance.SpawnObject("Bullet", renderer.bounds.center,
+                    Quaternion.AngleAxis(angle - 90, Vector3.forward));
+
+                var bulletController = bullet.GetComponent<BulletCotroller>();
+                bulletController.BulletProperties = BulletProperties.Chaining;
+                bulletController.CurrentChainJump = CurrentChainJump + 1;
+
+                OnDestroy();
+                Debug.LogWarning("Chaining");
+            }
         }
-        
+
         if (BulletProperties.HasFlag(BulletProperties.Forking))
         {
             Debug.LogWarning("Forking");
@@ -59,7 +86,9 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
     private void Update()
     {
         Move();
+        AutoDestroy();
     }
+
 
     private void Move()
     {
