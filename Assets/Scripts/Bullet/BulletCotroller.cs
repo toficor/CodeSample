@@ -58,13 +58,24 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
                 bulletController.BulletProperties = BulletProperties.Chaining;
                 bulletController.CurrentChainJump = CurrentChainJump + 1;
 
-                OnDestroy();
                 Debug.LogWarning("Chaining");
             }
         }
 
         if (BulletProperties.HasFlag(BulletProperties.Forking))
         {
+            float facingRotation = Mathf.Atan2(transform.up.y, transform.up.x) * Mathf.Rad2Deg;
+            float startingRotation = (facingRotation - _forkBulletData.AngleOffset / 2f) + 180f;
+            float angleIncrease = _forkBulletData.AngleOffset / (_forkBulletData.PartsAmount - 1);
+
+            for (int i = 0; i < _forkBulletData.PartsAmount; i++)
+            {
+                float tmpRot = startingRotation + angleIncrease * i;
+                SpriteRenderer renderer = col.gameObject.GetComponent<SpriteRenderer>();
+                GameObject bullet = PoolingSystem.Instance.SpawnObject("Bullet", renderer.bounds.center,
+                    Quaternion.Euler(0f, 0f, tmpRot + 90));
+            }
+
             Debug.LogWarning("Forking");
         }
 
@@ -72,12 +83,10 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
         {
             Debug.LogWarning("Piercing");
             _piercingCounter++;
-            if (_piercingCounter > _piercingBulletData.AmountOfObjectsGoingThrough)
+            if (_piercingCounter < _piercingBulletData.AmountOfObjectsGoingThrough)
             {
-                OnDestroy();
+                return;
             }
-
-            return;
         }
 
         OnDestroy();
