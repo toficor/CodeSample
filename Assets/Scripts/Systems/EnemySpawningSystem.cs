@@ -21,7 +21,7 @@ public class EnemySpawningSystem : MonoBehaviour
         }
     }
 
-    //dorobic raycastowanie i sprawdzanie czy w danym miejscu mozna respic enemiesow
+    //I was aware of case where enemies are spawning on each other, but in that case there are just returning to the pool. To prevent this, all you have to do is adding Physics2D.OverlapCircle like in the near enemy check (ShootingUtility.cs)
     private void SpawnRandomly()
     {
         for (int i = 0; i < _enemySpawningSystemData.Amoung; i++)

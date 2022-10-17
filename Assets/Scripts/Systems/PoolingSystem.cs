@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -15,41 +16,27 @@ public class PoolingSystem : Singleton<PoolingSystem>
         Init();
     }
 
-    //przekminic czy nie zrobic interfejsu dla inicjalizowanych elementow
     private void Init()
     {
         for (int i = 0; i < _poolingSystemDatas.Count; i++)
         {
-            //  GameObject poolParent = new GameObject(_poolingSystemDatas[i].Tag);
-            //  poolParent.transform.SetParent(this.transform);
             _pools.Add(_poolingSystemDatas[i].Tag,
-                CreatePool(_poolingSystemDatas[i].Amount, _poolingSystemDatas[i].Prefab, this.transform,
-                    _poolingSystemDatas[i].Tag));
+                CreatePool(_poolingSystemDatas[i], this.transform));
         }
     }
 
-    private Queue<GameObject> CreatePool(int amount, GameObject prefab, Transform parent, string tag)
+    private Queue<GameObject> CreatePool(PoolingSystemData poolingSystemData, Transform parent)
     {
         Queue<GameObject> queue = new Queue<GameObject>();
 
-        for (int i = 0; i < amount; i++)
+        for (int i = 0; i < poolingSystemData.Amount; i++)
         {
-            GameObject go = Instantiate(prefab, parent, true);
-
-            //debug
-            go.name += i;
-
-            var iPoolable = go.GetComponent<IPoolable>();
-
-            if (iPoolable == null)
+            var go = InstantiatePrefabInstance(poolingSystemData, parent);
+            if (!go)
             {
-                Debug.LogError($@"This Prefab {prefab.name} isn't poolable");
                 break;
             }
 
-            iPoolable.DeSpawn += DespawnObject;
-            iPoolable.Tag = tag;
-            go.SetActive(false);
             queue.Enqueue(go);
         }
 
@@ -59,14 +46,34 @@ public class PoolingSystem : Singleton<PoolingSystem>
     public void DespawnObject(string tag, GameObject pooledGameObject)
     {
         pooledGameObject.SetActive(false);
-        //pozmieniac potem wszystkie odowlania do ementow w dictionary na TryGet albo check name czy tam key
+
+        if (!_pools.ContainsKey(tag))
+        {
+            Debug.LogError("Trying enqueqe to unexisting pool ");
+            return;
+        }
+        
         _pools[tag].Enqueue(pooledGameObject);
     }
 
     public GameObject SpawnObject(string tag)
     {
+        if (!_pools.ContainsKey(tag))
+        {
+            Debug.LogError("There is no such tag in pool");
+            return null;
+        }
+
         var go = _pools[tag].Dequeue();
-        //dodac instancje jesli nie ma juz w poolu nic
+
+        if (!go)
+        {
+            Debug.LogWarning($@"There is no more items in pool {tag}. Instantiating new one");
+            var data = _poolingSystemDatas.First(x => x.Tag == tag);
+            GameObject newGo = InstantiatePrefabInstance(data, transform);
+            _pools[tag].Enqueue(newGo);
+        }
+
         go.SetActive(true);
         return go;
     }
@@ -82,6 +89,24 @@ public class PoolingSystem : Singleton<PoolingSystem>
     {
         var go = SpawnObject(tag, position);
         go.transform.rotation = rotation;
+        return go;
+    }
+
+    private GameObject InstantiatePrefabInstance(PoolingSystemData poolingSystemData, Transform parent)
+    {
+        GameObject go = Instantiate(poolingSystemData.Prefab, parent, true);
+
+        var iPoolable = go.GetComponent<IPoolable>();
+
+        if (iPoolable == null)
+        {
+            Debug.LogError($@"This Prefab {poolingSystemData.Prefab} isn't poolable");
+            return null;
+        }
+
+        iPoolable.DeSpawn += DespawnObject;
+        iPoolable.Tag = poolingSystemData.Tag;
+        go.SetActive(false);
         return go;
     }
 }

@@ -26,11 +26,12 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
         _autoDestroyTimer = 0;
     }
 
+    //while I was writing this logic, I had the feeling that there is some "nicer way" to write this.
     private void OnCollisionEnter2D(Collision2D col)
     {
         if (BulletProperties.Equals(BulletProperties.None))
         {
-            Debug.LogWarning("None");
+            Debug.Log("None");
             OnDestroy();
         }
 
@@ -58,7 +59,7 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
                 bulletController.BulletProperties = BulletProperties.Chaining;
                 bulletController.CurrentChainJump = CurrentChainJump + 1;
 
-                Debug.LogWarning("Chaining");
+                Debug.Log("Chaining");
             }
         }
 
@@ -76,12 +77,12 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
                     Quaternion.Euler(0f, 0f, tmpRot + 90));
             }
 
-            Debug.LogWarning("Forking");
+            Debug.Log("Forking");
         }
 
         if (BulletProperties.HasFlag(BulletProperties.Piercing))
         {
-            Debug.LogWarning("Piercing");
+            Debug.Log("Piercing");
             _piercingCounter++;
             if (_piercingCounter < _piercingBulletData.AmountOfObjectsGoingThrough)
             {

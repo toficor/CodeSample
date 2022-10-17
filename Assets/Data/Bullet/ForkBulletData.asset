@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1ae12a2a0ebb1e44bcd69b5d736582d, type: 3}
   m_Name: ForkBulletData
   m_EditorClassIdentifier: 
-  PartsAmount: 2
+  PartsAmount: 3
+  AngleOffset: 30

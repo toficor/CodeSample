@@ -34,21 +34,21 @@ public class PlayerWeapon
         if (PlayerInput.EnablePiercing)
         {
             _currentBulletEffects ^= BulletProperties.Piercing;
-            Debug.LogError(_currentBulletEffects);
+            Debug.Log(_currentBulletEffects);
         }
 
         if (PlayerInput.EnableForking)
         {
             _currentBulletEffects ^= BulletProperties.Forking;
 
-            Debug.LogError(_currentBulletEffects);
+            Debug.Log(_currentBulletEffects);
         }
 
         if (PlayerInput.EnableChaining)
         {
             _currentBulletEffects ^= BulletProperties.Chaining;
 
-            Debug.LogError(_currentBulletEffects);
+            Debug.Log(_currentBulletEffects);
         }
     }
 
