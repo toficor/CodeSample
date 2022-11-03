@@ -18,6 +18,8 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
     public string Tag { get; set; }
     public int CurrentChainJump { get; set; } = 0;
 
+    public delegate void OnDestructDelegate();
+
     public event Action<string, GameObject> DeSpawn;
 
     private void OnEnable()
@@ -26,71 +28,59 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
         _autoDestroyTimer = 0;
     }
 
-    //while I was writing this logic, I had the feeling that there is some "nicer way" to write this.
     private void OnCollisionEnter2D(Collision2D col)
     {
         if (BulletProperties.Equals(BulletProperties.None))
         {
-            Debug.Log("None");
-            OnDestroy();
+            EffectLoadingSystem.Instance.TryGetData(BulletProperties.None.ToString())
+                ?.OnHit(this.transform, col, OnDestruct);
         }
 
         if (BulletProperties.HasFlag(BulletProperties.Chaining))
         {
-            if (CurrentChainJump < _chainBulletData.JumpsAmount)
+            ChainBulletData chainingBulletData =
+                (ChainBulletData)EffectLoadingSystem.Instance.TryGetData(BulletProperties.Chaining.ToString());
+
+            if (!chainingBulletData)
             {
-                Transform nearestTarget =
-                    ShootingUtilities.GetNearestTarget(col.transform.position, _chainBulletData.MaxRangeToNextJump);
-
-                if (!nearestTarget)
-                {
-                    OnDestroy();
-                    return;
-                }
-
-                Vector3 pos = nearestTarget.position - transform.position;
-                float angle = Mathf.Atan2(pos.y, pos.x) * Mathf.Rad2Deg;
-
-                SpriteRenderer renderer = col.gameObject.GetComponent<SpriteRenderer>();
-                var bullet = PoolingSystem.Instance.SpawnObject("Bullet", renderer.bounds.center,
-                    Quaternion.AngleAxis(angle - 90, Vector3.forward));
-
-                var bulletController = bullet.GetComponent<BulletCotroller>();
-                bulletController.BulletProperties = BulletProperties.Chaining;
-                bulletController.CurrentChainJump = CurrentChainJump + 1;
-
-                Debug.Log("Chaining");
+                Debug.LogError("chaining Bullet data is equal null");
+                return;
             }
-        }
-
-        if (BulletProperties.HasFlag(BulletProperties.Forking))
-        {
-            float facingRotation = Mathf.Atan2(transform.up.y, transform.up.x) * Mathf.Rad2Deg;
-            float startingRotation = (facingRotation - _forkBulletData.AngleOffset / 2f) + 180f;
-            float angleIncrease = _forkBulletData.AngleOffset / (_forkBulletData.PartsAmount - 1);
-
-            for (int i = 0; i < _forkBulletData.PartsAmount; i++)
-            {
-                float tmpRot = startingRotation + angleIncrease * i;
-                SpriteRenderer renderer = col.gameObject.GetComponent<SpriteRenderer>();
-                GameObject bullet = PoolingSystem.Instance.SpawnObject("Bullet", renderer.bounds.center,
-                    Quaternion.Euler(0f, 0f, tmpRot + 90));
-            }
-
-            Debug.Log("Forking");
+            
+            chainingBulletData.OnHit(this.transform, col, CurrentChainJump, OnDestruct);
+            Debug.Log("Chaining");
         }
 
         if (BulletProperties.HasFlag(BulletProperties.Piercing))
         {
             Debug.Log("Piercing");
             _piercingCounter++;
-            if (_piercingCounter < _piercingBulletData.AmountOfObjectsGoingThrough)
+            PiercingBulletData piercingBulletData =
+                (PiercingBulletData)EffectLoadingSystem.Instance.TryGetData(BulletProperties.Piercing.ToString());
+
+            if (!piercingBulletData)
             {
+                Debug.LogError("chaining Bullet data is equal null");
                 return;
             }
+            
+            piercingBulletData.OnHit(this.transform, col, _piercingCounter, OnDestruct);
         }
 
-        OnDestroy();
+        if (BulletProperties.HasFlag(BulletProperties.Forking))
+        {
+            ForkBulletData forkBulletData =
+                (ForkBulletData)EffectLoadingSystem.Instance.TryGetData(BulletProperties.Forking.ToString());
+            forkBulletData.OnHit(this.transform, col, OnDestruct);
+            
+            if (!forkBulletData)
+            {
+                Debug.LogError("forking bullet data is equal null");
+                return;
+            }
+            
+            Debug.Log("Forking");
+        }
     }
 
     private void Update()
@@ -110,11 +100,11 @@ public class BulletCotroller : MonoBehaviour, IPoolable, IDestructable
         _autoDestroyTimer += Time.deltaTime;
         if (_baseBulletData.AutoDestroyTime <= _autoDestroyTimer)
         {
-            OnDestroy();
+            OnDestruct();
         }
     }
 
-    public void OnDestroy()
+    public void OnDestruct()
     {
         DeSpawn?.Invoke(Tag, gameObject);
     }

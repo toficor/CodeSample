@@ -10,10 +10,10 @@ public class EnemyController : MonoBehaviour, IPoolable, IDestructable
 
     private void OnCollisionEnter2D(Collision2D col)
     {
-        OnDestroy();
+        OnDestruct();
     }
 
-    public void OnDestroy()
+    public void OnDestruct()
     {
         DeSpawn?.Invoke(Tag, gameObject);
     }

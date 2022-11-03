@@ -9,7 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d6219cf402e7274c8b209bacd9e26c4, type: 3}
-  m_Name: BasicBullet
+  m_Script: {fileID: 11500000, guid: f1ae12a2a0ebb1e44bcd69b5d736582d, type: 3}
+  m_Name: ForkBulletData
   m_EditorClassIdentifier: 
+  Tag: Forking
   Speed: 25
+  AutoDestroyTime: 5
+  PartsAmount: 3
+  AngleOffset: 30

@@ -64,15 +64,15 @@ public class PoolingSystem : Singleton<PoolingSystem>
             return null;
         }
 
-        var go = _pools[tag].Dequeue();
-
-        if (!go)
+        if (_pools[tag].Count < 1)
         {
             Debug.LogWarning($@"There is no more items in pool {tag}. Instantiating new one");
             var data = _poolingSystemDatas.First(x => x.Tag == tag);
             GameObject newGo = InstantiatePrefabInstance(data, transform);
             _pools[tag].Enqueue(newGo);
         }
+        
+        var go = _pools[tag].Dequeue();
 
         go.SetActive(true);
         return go;
